@@ -7,6 +7,26 @@ from datetime import datetime, timezone
 from storage import init_db, save_record, get_history   # ← 这一行：import 里多个 init_db
 import uuid
 from fastapi import Request, Response
+import os
+from dotenv import load_dotenv
+
+load_dotenv()                        # ← 读同目录下的 .env
+
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS").split(",")
+
+
+init_db()  
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
 
 def get_session_id(request: Request, response: Response) -> str:
     sid = request.cookies.get("session_id")      # 先看有没有纸条
@@ -19,16 +39,6 @@ def get_session_id(request: Request, response: Response) -> str:
         )
     return sid
 
-init_db()  
-
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_methods=["GET", "POST"],
-    allow_credentials=True,
-)
 
 profile = {
     "heroTitle": "关于我",
